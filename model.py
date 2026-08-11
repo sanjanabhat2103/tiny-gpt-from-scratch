@@ -367,8 +367,10 @@ def decode_generated_sequence(ids, itos):
     """Decode a generated 1D array/list of token ids into a string via itos."""
     return decode_ids(ids, itos)
 
-# Step 54 - log_prob_of_pair (not yet solved)
-# TODO: implement
+# Step 54 - log_prob_of_pair
+def log_prob_of_pair(p_matrix, current_id, next_id):
+    """Return the log probability of a single (current, next) bigram."""
+    return np.log(p_matrix[current_id, next_id])
 
 # Step 55 - sum_negative_log_probs (not yet solved)
 # TODO: implement
