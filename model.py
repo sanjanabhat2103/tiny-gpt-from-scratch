@@ -420,8 +420,10 @@ def observe_lookup_equivalence(w, ids):
     one_hot = one_hot_encode_batch(ids, w.shape[0])
     return {'onehot_result': one_hot @ w, 'index_result': w[ids]}
 
-# Step 62 - forward_logits_lookup (not yet solved)
-# TODO: implement
+# Step 62 - forward_logits_lookup
+def forward_logits_lookup(w, ids):
+    """Return logits (B, V) by gathering rows of w at positions ids."""
+    return w[ids]
 
 # Step 63 - logits_to_probs_rowwise (not yet solved)
 # TODO: implement
