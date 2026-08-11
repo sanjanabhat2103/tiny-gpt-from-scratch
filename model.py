@@ -230,8 +230,14 @@ def stable_softmax_2d_rowwise(logits):
     row_sums = sum_keepdims(exp_values, axis = 1)
     return exp_values / row_sums
 
-# Step 34 - read_text_file (not yet solved)
-# TODO: implement
+# Step 34 - read_text_file
+def read_text_file(text_blob):
+    """Return text_blob unchanged after validating it is a non-empty string."""
+    if not text_blob:
+        raise ValueError("Input must not be empty.")
+    if not isinstance(text_blob, str):
+        raise TypeError("Input must be a string.")
+    return text_blob
 
 # Step 35 - encode_corpus_to_int_array (not yet solved)
 # TODO: implement
