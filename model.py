@@ -540,8 +540,15 @@ def derive_dx_on_paper():
         "shapes: X (B, In), W (In, Out), dY (B, Out) -> dL/dX (B, In)"
     )
 
-# Step 76 - derive_linear_dw_on_paper (not yet solved)
-# TODO: implement
+# Step 76 - derive_linear_dw_on_paper
+def derive_linear_dw_on_paper():
+    """Return a string with the derivation of dL/dW for Y = X @ W."""
+    return (
+        "Forward: Y = X @ W.\n"
+        "Shapes: X (B, D_in), W (D_in, D_out), dY (B, D_out).\n"
+        "By the chain rule, dL/dW = X.T @ dY.\n"
+        "The result has shape (D_in, D_out), matching W."
+    )
 
 # Step 77 - linear_backward_dx (not yet solved)
 # TODO: implement
