@@ -570,8 +570,10 @@ def bias_add_forward(x, b):
     y = x + b 
     return {'y': y, 'cache': {'b_shape': b.shape}}
 
-# Step 80 - bias_add_backward_db (not yet solved)
-# TODO: implement
+# Step 80 - bias_add_backward_db
+def bias_add_backward_db(dy, cache):
+    """Compute db from upstream gradient dy for y = x + b."""
+    return dy.sum(axis = 0).reshape(cache["b_shape"])
 
 # Step 81 - relu_forward (not yet solved)
 # TODO: implement
