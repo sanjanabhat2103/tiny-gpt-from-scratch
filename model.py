@@ -584,8 +584,12 @@ def relu_forward(x):
     y = np.maximum(0.0, x)
     return {"y": y, "cache": {"x": x}}
 
-# Step 82 - relu_backward (not yet solved)
-# TODO: implement
+# Step 82 - relu_backward
+def relu_backward(dy, cache):
+    """Backward pass for ReLU. cache['x'] holds the original input."""
+    x = cache["x"]
+    dx = dy * (x > 0)
+    return dx
 
 # Step 83 - softmax_cross_entropy_backward (not yet solved)
 # TODO: implement
