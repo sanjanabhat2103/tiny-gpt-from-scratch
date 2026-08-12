@@ -878,8 +878,19 @@ def output_projection_backward(d_proj, cache):
         "dw_o": dw_o,
     }
 
-# Step 111 - attention_value_backward (not yet solved)
-# TODO: implement
+# Step 111 - attention_value_backward
+import numpy as np
+
+def attention_value_backward(d_attn_out, cache):
+    """Backprop through out = attn @ V."""
+    attn = cache["attn"]
+    v = cache["v"]
+    d_attn = d_attn_out @ np.swapaxes(v, -1, -2)
+    d_v = np.swapaxes(attn, -1, -2) @ d_attn_out
+    return {
+        "d_attn": d_attn,
+        "d_v": d_v,
+    }
 
 # Step 112 - masked_softmax_backward (not yet solved)
 # TODO: implement
