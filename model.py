@@ -670,8 +670,32 @@ def layernorm_backward_divide_std(dy, cache):
     dx_centered = dy / std
     return dx_centered
 
-# Step 90 - layernorm_backward_full (not yet solved)
-# TODO: implement
+# Step 90 - layernorm_backward_full
+def layernorm_backward_full(dy, cache):
+    """Full LayerNorm backward. Return {'dx', 'dgamma', 'dbeta'}."""
+    x = cache["x"]
+    x_hat = cache["x_hat"]
+    mean = cache["mean"]
+    var = cache["var"]
+    gamma = cache["gamma"]
+    eps = cache["eps"]
+    B, D = x.shape
+    dgamma = np.sum(dy * x_hat, axis=0)
+    dbeta = np.sum(dy, axis = 0)
+    dx_hat = dy * gamma
+    x_centered = x - mean
+    inv_std = 1.0 / np.sqrt(var + eps)
+    dx = (inv_std / D) * (
+        D * dx_hat
+        - np.sum(dx_hat, axis = 1, keepdims = True)
+        - x_centered * (inv_std ** 2)
+          * np.sum(dx_hat * x_centered, axis = 1, keepdims = True)
+    )
+    return {
+        "dx": dx,
+        "dgamma": dgamma,
+        "dbeta": dbeta,
+    }
 
 # Step 91 - layernorm_backward_implementation (not yet solved)
 # TODO: implement
