@@ -697,8 +697,32 @@ def layernorm_backward_full(dy, cache):
         "dbeta": dbeta,
     }
 
-# Step 91 - layernorm_backward_implementation (not yet solved)
-# TODO: implement
+# Step 91 - layernorm_backward_implementation
+def layernorm_backward_implementation(d_out, cache):
+    """Return {'dx', 'dgamma', 'dbeta'} gradients for LayerNorm."""
+    x = cache["x"]
+    x_hat = cache["x_hat"]
+    mean = cache["mean"]
+    var = cache["var"]
+    gamma = cache["gamma"]
+    eps = cache["eps"]
+    D = x.shape[1]
+    dgamma = np.sum(d_out * x_hat, axis = 0)
+    dbeta = np.sum(d_out, axis = 0)
+    dx_hat = d_out * gamma
+    x_centered = x - mean
+    inv_std = 1.0 / np.sqrt(var + eps)
+    dx = (inv_std / D) * (
+        D * dx_hat
+        - np.sum(dx_hat, axis = 1, keepdims = True)
+        - x_centered * (inv_std ** 2)
+        * np.sum(dx_hat * x_centered, axis = 1, keepdims = True)
+    )
+    return {
+        "dx": dx,
+        "dgamma": dgamma,
+        "dbeta": dbeta,
+    }
 
 # Step 92 - create_token_embedding (not yet solved)
 # TODO: implement
