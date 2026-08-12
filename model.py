@@ -661,8 +661,14 @@ def layernorm_backward_subtract_mean(dy, cache):
     dx = dy - np.sum(dy, axis = 1, keepdims = True) / D
     return dx
 
-# Step 89 - layernorm_backward_divide_std (not yet solved)
-# TODO: implement
+# Step 89 - layernorm_backward_divide_std
+def layernorm_backward_divide_std(dy, cache):
+    """Propagate dy through the divide-by-std step of LayerNorm."""
+    var = cache["var"]
+    eps = cache["eps"]
+    std = np.sqrt(var + eps)
+    dx_centered = dy / std
+    return dx_centered
 
 # Step 90 - layernorm_backward_full (not yet solved)
 # TODO: implement
