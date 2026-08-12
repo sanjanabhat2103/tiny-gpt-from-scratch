@@ -647,8 +647,19 @@ def layernorm_forward_affine(x, gamma, beta, eps):
     }
     return {"y": y, "cache": cache}
 
-# Step 88 - layernorm_backward_subtract_mean (not yet solved)
-# TODO: implement
+# Step 88 - layernorm_backward_subtract_mean
+import numpy as np
+
+def layernorm_backward_subtract_mean(dy, cache):
+    """Gradient through y = x - mean(x, axis=1, keepdims=True).
+
+    dy: (B, D) upstream gradient w.r.t. the centered output.
+    cache: dict with keys 'x' (B, D) and 'mean' (B,).
+    Returns dx of shape (B, D).
+    """
+    D = dy.shape[1]
+    dx = dy - np.sum(dy, axis = 1, keepdims = True) / D
+    return dx
 
 # Step 89 - layernorm_backward_divide_std (not yet solved)
 # TODO: implement
