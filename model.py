@@ -1017,8 +1017,22 @@ def compute_d_head(d_model, n_heads):
         raise ValueError("n_heads must evenely divide d_model")
     return d_model // n_heads
 
-# Step 124 - multihead_masked_softmax_scores (not yet solved)
-# TODO: implement
+# Step 124 - multihead_masked_softmax_scores
+def multihead_masked_softmax_scores(scores, mask):
+    """Apply causal mask and row-wise softmax to multi-head attention scores.
+
+    Args:
+        scores: ndarray of shape (B, n_heads, T, T)
+        mask:   ndarray of shape (T, T), True where positions are kept
+
+    Returns:
+        weights: ndarray of shape (B, n_heads, T, T)
+    """
+    B, n_heads, T, _ = scores.shape
+    masked_scores = apply_causal_mask(scores, mask)
+    flat_scores = masked_scores.reshape(B * n_heads * T, T)
+    weights = stable_softmax_2d_rowwise(flat_scores)
+    return weights.reshape(B, n_heads, T, T)
 
 # Step 125 - multihead_weighted_sum (not yet solved)
 # TODO: implement
