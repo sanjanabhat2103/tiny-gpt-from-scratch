@@ -999,8 +999,9 @@ def transpose_heads_to_front(x_heads):
     """Transpose (B, T, n_heads, d_head) to (B, n_heads, T, d_head)."""
     return np.swapaxes(x_heads, 1, 2)
 
-# Step 121 - get_multihead_n_heads (not yet solved)
-# TODO: implement
+# Step 121 - get_multihead_n_heads
+def get_multihead_n_heads(config):
+    return config["n_heads"]
 
 # Step 122 - get_multihead_sequence_length (not yet solved)
 # TODO: implement
