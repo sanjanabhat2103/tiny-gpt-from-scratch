@@ -1136,8 +1136,42 @@ def ffn_linear_two_forward(a1, w2, b2):
         },
     }
 
-# Step 134 - ffn_backward (not yet solved)
-# TODO: implement
+# Step 134 - ffn_backward
+def ffn_backward(d_out, cache):
+    """Backprop through linear2 -> ReLU -> linear1 of the FFN."""
+    x = cache["x"]
+    w1 = cache["w1"]
+    h1 = cache["h1"]
+    a1 = cache["a1"]
+    w2 = cache["w2"]
+    B, T, d_model = x.shape
+    d_ff = w1.shape[1]
+    d_out_2d = d_out.reshape(B * T, d_model)
+    a1_2d = a1.reshape(B * T, d_ff)
+    h1_2d = h1.reshape(B * T, d_ff)
+    x_2d = x.reshape(B * T, d_model)
+    linear2_cache = {"x": a1_2d, "w": w2}
+    da1_2d = linear_backward_dx(d_out_2d, linear2_cache)
+    dw2 = linear_backward_dw(d_out_2d, linear2_cache)
+    db2 = bias_add_backward_db(
+        d_out_2d,
+        {"b_shape": (d_model,)}
+    )
+    dh1_2d = relu_backward(da1_2d, {"x": h1_2d})
+    linear1_cache = {"x": x_2d, "w": w1}
+    dx_2d = linear_backward_dx(dh1_2d, linear1_cache)
+    dw1 = linear_backward_dw(dh1_2d, linear1_cache)
+    db1 = bias_add_backward_db(
+        dh1_2d,
+        {"b_shape": (d_ff,)}
+    )
+    return {
+        "dx": dx_2d.reshape(B, T, d_model),
+        "dw1": dw1,
+        "db1": db1,
+        "dw2": dw2,
+        "db2": db2,
+    }
 
 # Step 135 - residual_forward (not yet solved)
 # TODO: implement
