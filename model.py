@@ -1208,8 +1208,58 @@ def pre_layernorm_sublayer_forward(x, ln_params, sublayer_fn, sublayer_params, e
         },
     }
 
-# Step 138 - transformer_block_forward (not yet solved)
-# TODO: implement
+# Step 138 - transformer_block_forward
+def transformer_block_forward(x, block_params):
+    """Run one pre-LN Transformer block forward."""
+    ln1 = layernorm_forward_affine(
+        x,
+        block_params["ln1"]["gamma"],
+        block_params["ln1"]["beta"],
+        1e-5,
+    )
+    attn = block_params["attn"]
+    n_heads = attn["n_heads"]
+    d_head = compute_d_head(x.shape[-1], n_heads)
+    q = compute_query(ln1["y"], attn["Wq"])
+    k = compute_key(ln1["y"], attn["Wk"])
+    v = compute_value(ln1["y"], attn["Wv"])
+    q = transpose_heads_to_front(reshape_to_heads(q, n_heads, d_head))
+    k = transpose_heads_to_front(reshape_to_heads(k, n_heads, d_head))
+    v = transpose_heads_to_front(reshape_to_heads(v, n_heads, d_head))
+    scores = scale_attention_scores(
+        q @ np.swapaxes(k, -1, -2), d_head
+    )
+    weights = multihead_masked_softmax_scores(
+        scores, build_causal_mask(x.shape[1])
+    )
+    attn_out = multihead_weighted_sum(weights, v)
+    attn_out = merge_heads_to_d_model(
+        transpose_heads_to_back(attn_out)
+    )
+    attn_out = apply_output_projection(attn_out, attn["Wo"])
+    attn_out = attn_out + attn["bo"]
+    x2 = x + attn_out
+    ln2 = layernorm_forward_affine(
+        x2,
+        block_params["ln2"]["gamma"],
+        block_params["ln2"]["beta"],
+        1e-5,
+    )
+    ffn = block_params["ffn"]
+    h1 = ffn_linear_one_forward(
+        ln2["y"], ffn["w1"], ffn["b1"]
+    )
+    a1 = ffn_activation_forward(h1["h1"])[0]
+    h2 = ffn_linear_two_forward(
+        a1, ffn["w2"], ffn["b2"]
+    )
+    return {
+        "y": x2 + h2["h2"],
+        "cache": {
+            "attn_branch": ln1["cache"],
+            "ffn_branch": ln2["cache"],
+        },
+    }
 
 # Step 139 - transformer_block_backward (not yet solved)
 # TODO: implement
