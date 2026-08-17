@@ -1302,8 +1302,40 @@ def transformer_block_backward(d_y, cache, block_params):
     }
     return d_x, grads
 
-# Step 140 - stack_transformer_blocks (not yet solved)
-# TODO: implement
+# Step 140 - stack_transformer_blocks
+def stack_transformer_blocks(n_layers, d_model, n_heads, d_ff):
+    """Build a list of n_layers Transformer block parameter dicts.
+
+    Each block dict has keys 'ln1', 'attn', 'ln2', 'ffn'.
+    """
+    blocks = []
+    d_head = d_model // n_heads
+    for i in range(n_layers):
+        block = {
+            'ln1': {
+                'gamma': np.ones(d_model),
+                'beta': np.zeros(d_model)
+            },
+            'attn': {
+                'Wq': scale_w_small(make_2d_random(d_model, d_model, seed = 0), 0.02),
+                'Wk': scale_w_small(make_2d_random(d_model, d_model, seed = 1), 0.02),
+                'Wv': scale_w_small(make_2d_random(d_model, d_model, seed = 2), 0.02),
+                'Wo': scale_w_small(make_2d_random(d_model, d_model, seed = 3), 0.02),
+                'bo': np.zeros(d_model)
+            },
+            'ln2': {
+                'gamma': np.ones(d_model),
+                'beta': np.zeros(d_model)
+            },
+            'ffn': {
+                'W1': scale_w_small(make_2d_random(d_model, d_ff, seed = 4), 0.02),
+                'b1': np.zeros(d_ff),
+                'W2': scale_w_small(make_2d_random(d_ff, d_model, seed = 5), 0.02),
+                'b2': np.zeros(d_model)
+            }
+        }
+        blocks.append(block)
+    return blocks
 
 # Step 141 - forward_through_all_blocks (not yet solved)
 # TODO: implement
