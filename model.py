@@ -1718,8 +1718,13 @@ def logging_and_validation_loss(
         losses.append(loss)
     return float(np.mean(losses))
 
-# Step 156 - encode_prompt (not yet solved)
-# TODO: implement
+# Step 156 - encode_prompt
+import numpy as np
+
+def encode_prompt(prompt, stoi):
+    """Encode a string prompt to an int ndarray of shape (1, T)."""
+    ids = encode_string(prompt, stoi)
+    return np.array(ids, dtype = np.int64)[None, :]
 
 # Step 157 - crop_context_to_block_size (not yet solved)
 # TODO: implement
