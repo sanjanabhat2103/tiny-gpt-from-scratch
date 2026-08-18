@@ -1583,32 +1583,38 @@ def wire_full_training_loop(
     n_steps, lr, betas, eps
 ):
     """Run the full GPT training loop for n_steps and return (updated_params, history)."""
-
     beta1, beta2 = betas
     m, v = initialize_adam_moments(params)
     t = initialize_adam_step_counter()
     rng = np.random.default_rng()
-
     history = []
-
     def update_tree(p, g, mp, vp):
         if isinstance(p, dict):
             for key in p:
-                update_tree(p[key], g[key], mp[key], vp[key])
-
+                update_tree(
+                    p[key],
+                    g[key],
+                    mp[key],
+                    vp[key],
+                )
         elif isinstance(p, list):
             for i in range(len(p)):
-                update_tree(p[i], g[i], mp[i], vp[i])
-
+                update_tree(
+                    p[i],
+                    g[i],
+                    mp[i],
+                    vp[i],
+                )
         elif isinstance(p, np.ndarray):
             mp[...] = beta1 * mp + (1.0 - beta1) * g
             vp[...] = beta2 * vp + (1.0 - beta2) * (g ** 2)
-
             m_hat = mp / (1.0 - beta1 ** t)
             v_hat = vp / (1.0 - beta2 ** t)
-
             p[...] -= lr * m_hat / (np.sqrt(v_hat) + eps)
-
+        else:
+            raise TypeError(
+                f"Unsupported parameter type: {type(p)}"
+            )
     for step in range(n_steps):
         x_ids, y_ids = get_batch(
             train_ids,
@@ -1616,44 +1622,56 @@ def wire_full_training_loop(
             batch_size,
             rng,
         )
-
-        logits, caches = full_model_forward(x_ids, params)
-
+        logits, caches = full_model_forward(
+            x_ids,
+            params,
+        )
         B, T, V = logits.shape
-
-        # Stable softmax.
-        z = logits - np.max(logits, axis=-1, keepdims=True)
+        z = logits - np.max(
+            logits,
+            axis = -1,
+            keepdims = True,
+        )
         exp_z = np.exp(z)
-        probs = exp_z / np.sum(exp_z, axis=-1, keepdims=True)
-
-        # Cross entropy.
+        probs = exp_z / np.sum(
+            exp_z,
+            axis = -1,
+            keepdims = True,
+        )
         flat_probs = probs.reshape(-1, V)
         flat_y = y_ids.reshape(-1)
         N = flat_y.size
-
         loss = -np.mean(
-            np.log(flat_probs[np.arange(N), flat_y] + 1e-12)
+            np.log(
+                flat_probs[
+                    np.arange(N),
+                    flat_y,
+                ] + 1e-12
+            )
         )
-
-        # dL / dlogits.
-        d_probs = flat_probs.copy()
-        d_probs[np.arange(N), flat_y] -= 1.0
-        d_logits = (d_probs / N).reshape(B, T, V)
-
+        d_logits = flat_probs.copy()
+        d_logits[
+            np.arange(N),
+            flat_y,
+        ] -= 1.0
+        d_logits /= N
+        d_logits = d_logits.reshape(B, T, V)
         grads = full_model_backward(
             d_logits,
             caches,
             params,
         )
-
         t += 1
-        update_tree(params, grads, m, v)
-
+        update_tree(
+            params,
+            grads,
+            m,
+            v,
+        )
         history.append({
             "step": step,
-            "train_loss": loss,
+            "train_loss": float(loss),
         })
-
     return params, history
 
 # Step 155 - logging_and_validation_loss (not yet solved)
