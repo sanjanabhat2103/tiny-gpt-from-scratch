@@ -1423,6 +1423,7 @@ def full_model_forward(x_ids, model_params):
     caches["emb"] = {
         "tok_cache": token_cache,
         "pos_emb": pos_emb,
+        "seq_len": seq_len
     }
     x, block_caches = forward_through_all_blocks(
         x, model_params["blocks"]
