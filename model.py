@@ -1421,7 +1421,7 @@ def full_model_forward(x_ids, model_params):
     )
     x = add_token_and_positional_embeddings(token_emb, pos_emb)
     caches["emb"] = {
-        "token_emb": token_cache,
+        "tok_cache": token_cache,
         "pos_emb": pos_emb,
     }
     x, block_caches = forward_through_all_blocks(
@@ -1576,8 +1576,84 @@ def adam_parameter_update(param, m_hat, v_hat, lr, eps):
     p_new = param - lr * m_hat / (np.sqrt(v_hat) + eps)
     return p_new
 
-# Step 154 - wire_full_training_loop (not yet solved)
-# TODO: implement
+# Step 154 - wire_full_training_loop
+def wire_full_training_loop(
+    params, train_ids, val_ids, block_size, batch_size,
+    n_steps, lr, betas, eps
+):
+    """Run the full GPT training loop for n_steps and return (updated_params, history)."""
+
+    beta1, beta2 = betas
+    m, v = initialize_adam_moments(params)
+    t = initialize_adam_step_counter()
+    rng = np.random.default_rng()
+
+    history = []
+
+    def update_tree(p, g, mp, vp):
+        if isinstance(p, dict):
+            for key in p:
+                update_tree(p[key], g[key], mp[key], vp[key])
+
+        elif isinstance(p, list):
+            for i in range(len(p)):
+                update_tree(p[i], g[i], mp[i], vp[i])
+
+        elif isinstance(p, np.ndarray):
+            mp[...] = beta1 * mp + (1.0 - beta1) * g
+            vp[...] = beta2 * vp + (1.0 - beta2) * (g ** 2)
+
+            m_hat = mp / (1.0 - beta1 ** t)
+            v_hat = vp / (1.0 - beta2 ** t)
+
+            p[...] -= lr * m_hat / (np.sqrt(v_hat) + eps)
+
+    for step in range(n_steps):
+        x_ids, y_ids = get_batch(
+            train_ids,
+            block_size,
+            batch_size,
+            rng,
+        )
+
+        logits, caches = full_model_forward(x_ids, params)
+
+        B, T, V = logits.shape
+
+        # Stable softmax.
+        z = logits - np.max(logits, axis=-1, keepdims=True)
+        exp_z = np.exp(z)
+        probs = exp_z / np.sum(exp_z, axis=-1, keepdims=True)
+
+        # Cross entropy.
+        flat_probs = probs.reshape(-1, V)
+        flat_y = y_ids.reshape(-1)
+        N = flat_y.size
+
+        loss = -np.mean(
+            np.log(flat_probs[np.arange(N), flat_y] + 1e-12)
+        )
+
+        # dL / dlogits.
+        d_probs = flat_probs.copy()
+        d_probs[np.arange(N), flat_y] -= 1.0
+        d_logits = (d_probs / N).reshape(B, T, V)
+
+        grads = full_model_backward(
+            d_logits,
+            caches,
+            params,
+        )
+
+        t += 1
+        update_tree(params, grads, m, v)
+
+        history.append({
+            "step": step,
+            "train_loss": loss,
+        })
+
+    return params, history
 
 # Step 155 - logging_and_validation_loss (not yet solved)
 # TODO: implement
