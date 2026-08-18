@@ -1726,8 +1726,9 @@ def encode_prompt(prompt, stoi):
     ids = encode_string(prompt, stoi)
     return np.array(ids, dtype = np.int64)[None, :]
 
-# Step 157 - crop_context_to_block_size (not yet solved)
-# TODO: implement
+# Step 157 - crop_context_to_block_size
+def crop_context_to_block_size(context_ids, block_size):
+    return context_ids[:, -block_size:]
 
 # Step 158 - forward_to_get_logits (not yet solved)
 # TODO: implement
