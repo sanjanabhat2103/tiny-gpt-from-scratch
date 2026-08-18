@@ -1514,8 +1514,28 @@ def full_model_backward(d_logits, caches, model_params):
         },
     }
 
-# Step 147 - initialize_adam_moments (not yet solved)
-# TODO: implement
+# Step 147 - initialize_adam_moments
+import numpy as np
+
+def initialize_adam_moments(model_params):
+    """Allocate zeroed Adam first- and second-moment buffers matching model_params."""
+    def zeros_like_tree(tree):
+        if isinstance(tree, dict):
+            return {
+                key: zeros_like_tree(value)
+                for key, value in tree.items()
+            }
+        if isinstance(tree, list):
+            return [
+                zeros_like_tree(value)
+                for value in tree
+            ]
+        if isinstance(tree, np.ndarray):
+            return np.zeros_like(tree)
+        return tree
+    m = zeros_like_tree(model_params)
+    v = zeros_like_tree(model_params)
+    return m, v
 
 # Step 148 - initialize_adam_step_counter (not yet solved)
 # TODO: implement
